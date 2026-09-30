@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - LibraryMS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Welcome, {{ user.get_full_name|default:user.username }}!</h1>
+    
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Books Borrowed</h6>
+                            <h2 class="mb-0">{{ borrowed_count }}</h2>
+                        </div>
+                        <i class="fas fa-book-reader fa-3x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Overdue Books</h6>
+                            <h2 class="mb-0">{{ overdue_books.count }}</h2>
+                        </div>
+                        <i class="fas fa-exclamation-triangle fa-3x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Active Reservations</h6>
+                            <h2 class="mb-0">{{ reservations.count }}</h2>
+                        </div>
+                        <i class="fas fa-clock fa-3x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Total Fine</h6>
+                            <h2 class="mb-0">PKR {{ total_fine }}</h2>
+                        </div>
+                        <i class="fas fa-money-bill fa-3x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Borrowed Books -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Currently Borrowed Books</h5>
+                </div>
+                <div class="card-body">
+                    {% if borrowed_books %}
+                        <div class="list-group">
+                            {% for transaction in borrowed_books %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>{{ transaction.book.title }}</h6>
+                                            <small class="text-muted">
+                                                Due: {{ transaction.due_date|date:"M d, Y" }}
+                                                {% if transaction.is_overdue %}
+                                                    <span class="badge bg-danger">Overdue</span>
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                        <div>
+                                            <span class="badge bg-{% if transaction.is_overdue %}danger{% else %}success{% endif %}">
+                                                {{ transaction.get_status_display }}
+                                            </span>
+                                            <form method="post" action="{% url 'books:return_book' transaction.id %}" style="display:inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-undo"></i> Return
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">You haven't borrowed any books.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Recent Transactions</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_transactions %}
+                        <div class="list-group">
+                            {% for transaction in recent_transactions %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6>{{ transaction.book.title }}</h6>
+                                            <small class="text-muted">
+                                                {{ transaction.borrow_date|date:"M d, Y" }}
+                                            </small>
+                                        </div>
+                                        <span class="badge bg-{% if transaction.status == 'returned' %}success{% elif transaction.status == 'overdue' %}danger{% else %}warning{% endif %}">
+                                            {{ transaction.get_status_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No recent transactions.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

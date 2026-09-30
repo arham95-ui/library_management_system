@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ book.title }} - LibraryMS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Book Image -->
+        <div class="col-md-4">
+            {% if book.cover_image %}
+                <img src="{{ book.cover_image.url }}" class="img-fluid rounded shadow" alt="{{ book.title }}">
+            {% else %}
+                <div class="bg-secondary rounded d-flex align-items-center justify-content-center" style="height: 400px;">
+                    <i class="fas fa-book fa-5x text-white"></i>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Book Details -->
+        <div class="col-md-8">
+            <h1>{{ book.title }}</h1>
+            {% if book.subtitle %}
+                <h5 class="text-muted">{{ book.subtitle }}</h5>
+            {% endif %}
+            
+            <p>
+                <strong>Authors:</strong> {{ book.authors.all|join:", " }}
+            </p>
+            <p>
+                <strong>Publisher:</strong> {{ book.publisher.name }}
+            </p>
+            <p>
+                <strong>Category:</strong> {{ book.category.name }}
+            </p>
+            <p>
+                <strong>ISBN:</strong> {{ book.isbn }}
+            </p>
+            <p>
+                <strong>Year:</strong> {{ book.publication_year }}
+            </p>
+            <p>
+                <strong>Language:</strong> {{ book.language }}
+            </p>
+            <p>
+                <strong>Pages:</strong> {{ book.pages }}
+            </p>
+            
+            <div class="mb-3">
+                <span class="badge bg-{% if book.status == 'available' %}success{% elif book.status == 'borrowed' %}warning{% else %}danger{% endif %} fs-6">
+                    {{ book.get_status_display }}
+                </span>
+                <span class="badge bg-info fs-6">
+                    Available: {{ book.available_copies }}/{{ book.total_copies }}
+                </span>
+                {% if book.rating %}
+                    <span class="badge bg-warning fs-6">
+                        <i class="fas fa-star"></i> {{ book.rating|floatformat:1 }}
+                    </span>
+                {% endif %}
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="mb-4">
+                {% if user.is_authenticated %}
+                    {% if book.is_available and not is_borrowed %}
+                        <form method="post" action="{% url 'books:borrow_book' book.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-hand-holding"></i> Borrow Book
+                            </button>
+                        </form>
+                    {% endif %}
+                    
+                    {% if book.is_available and not is_reserved and not is_borrowed %}
+                        <form method="post" action="{% url 'books:reserve_book' book.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-info">
+                                <i class="fas fa-clock"></i> Reserve
+                            </button>
+                        </form>
+                    {% endif %}
+                    
+                    {% if is_borrowed %}
+                        <span class="badge bg-warning fs-6">You have borrowed this book</span>
+                    {% endif %}
+                    
+                    {% if is_reserved %}
+                        <span class="badge bg-info fs-6">You have reserved this book</span>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="btn btn-primary">Login to Borrow</a>
+                {% endif %}
+            </div>
+            
+            <!-- Description -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>Description</h5>
+                </div>
+                <div class="card-body">
+                    {{ book.description|safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Reviews -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Reviews</h5>
+                </div>
+                <div class="card-body">
+                    {% if user.is_authenticated %}
+                        <form method="post" action="{% url 'books:add_review' book.id %}">
+                            {% csrf_token %}
+                            {{ review_form.as_p }}
+                            <button type="submit" class="btn btn-primary">Submit Review</button>
+                        </form>
+                        <hr>
+                    {% endif %}
+                    
+                    {% if reviews %}
+                        {% for review in reviews %}
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between">
+                                    <strong>{{ review.user.username }}</strong>
+                                    <span class="text-warning">
+                                        {% for i in "12345"|make_list %}
+                                            {% if forloop.counter <= review.rating %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </span>
+                                </div>
+                                <p>{{ review.comment }}</p>
+                                <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+                                <hr>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No reviews yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Books -->
+    {% if related_books %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <h4>Related Books</h4>
+                <div class="row">
+                    {% for related_book in related_books %}
+                        <div class="col-md-3 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ related_book.title|truncatechars:20 }}</h6>
+                                    <a href="{% url 'books:book_detail' related_book.pk %}" class="btn btn-sm btn-primary">View</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

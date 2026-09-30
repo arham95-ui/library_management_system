@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="jumbotron bg-primary text-white p-5 rounded">
+    <h1 class="display-4">📚 Welcome to LibraryMS</h1>
+    <p class="lead">Your complete Library Management System</p>
+    <hr class="my-4 text-white">
+    <p>Browse our collection of thousands of books.</p>
+    <a class="btn btn-light btn-lg" href="/admin/">
+        <i class="fas fa-cog"></i> Admin Panel
+    </a>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-book fa-3x text-primary mb-3"></i>
+                <h5>Books Collection</h5>
+                <p>Thousands of books available</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-users fa-3x text-success mb-3"></i>
+                <h5>Members</h5>
+                <p>Manage library members</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-hand-holding fa-3x text-warning mb-3"></i>
+                <h5>Transactions</h5>
+                <p>Track borrow/return</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
